@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: ${{ hashFiles('package.json') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -29,17 +30,25 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
+        if: ${{ hashFiles('package-lock.json') != '' }}
         run: npm ci
 
       - name: Build for GitHub Pages
+        if: ${{ hashFiles('package.json') != '' }}
         run: npm run build -- --base=/${{ github.event.repository.name }}/
 
       - name: Upload Pages artifact
+        if: ${{ hashFiles('package.json') != '' }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
+      - name: Skip deploy artifact build (Node project not initialized)
+        if: ${{ hashFiles('package.json') == '' }}
+        run: echo "Skipping Pages build because package.json does not exist yet."
+
   deploy:
+    if: ${{ hashFiles('package.json') != '' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

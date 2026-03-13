@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: ${{ hashFiles('package.json') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -20,7 +21,13 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
+        if: ${{ hashFiles('package-lock.json') != '' }}
         run: npm ci
 
       - name: Build
+        if: ${{ hashFiles('package.json') != '' }}
         run: npm run build
+
+      - name: Skip build (Node project not initialized)
+        if: ${{ hashFiles('package.json') == '' }}
+        run: echo "Skipping Node build because package.json does not exist yet."
